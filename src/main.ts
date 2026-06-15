@@ -12,7 +12,7 @@ app.innerHTML = `
     <section class="intro">
       <p class="eyebrow">Subsunk</p>
       <h1>SUBSUNK</h1>
-      <p class="lede">A suspensful submarine combat simulator inspired by early arcade games. SUBSUNK is the name of the code that is sent to the Undersea Rescue Command when a submarine is believed to be sunk.</p>
+      <p class="lede">A suspensful submarine combat simulator inspired by early arcade games. SUBSUNK is the code used by the Undersea Rescue Command when a submarine is believed to be sunk</p>
       <p class="lede">Use the WASD keys to move your submarine and the mouse to aim and shoot torpedoes at your enemies. Can you survive the depths?</p>
     </section>
 
