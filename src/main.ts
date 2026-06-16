@@ -8,6 +8,7 @@ if (!app) {
 }
 
 app.innerHTML = `
+  <a class="projects-link" href="https://arissmiller.net" target="_self">Back to Projects</a>
   <main class="shell">
     <section class="intro">
       <p class="eyebrow">Subsunk</p>

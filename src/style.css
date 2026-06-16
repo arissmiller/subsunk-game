@@ -32,6 +32,42 @@ select {
   min-height: 100vh;
 }
 
+.projects-link {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 14px;
+  border: 1px solid rgba(244, 226, 178, 0.3);
+  border-radius: 999px;
+  background: rgba(7, 21, 32, 0.78);
+  color: #f6f1de;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.72rem;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.projects-link:hover,
+.projects-link:focus-visible {
+  background: rgba(20, 48, 64, 0.92);
+  border-color: rgba(244, 226, 178, 0.5);
+  transform: translateY(-1px);
+}
+
+.projects-link:focus-visible {
+  outline: 2px solid rgba(244, 226, 178, 0.45);
+  outline-offset: 3px;
+}
+
 .shell {
   width: min(1120px, calc(100vw - 32px));
   margin: 0 auto;
@@ -98,6 +134,13 @@ select {
 }
 
 @media (max-width: 720px) {
+  .projects-link {
+    top: 12px;
+    right: 12px;
+    padding: 9px 12px;
+    font-size: 0.68rem;
+  }
+
   .shell {
     width: min(100vw - 20px, 1120px);
     padding-top: 28px;
