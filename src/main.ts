@@ -14,7 +14,7 @@ app.innerHTML = `
       <p class="eyebrow">Subsunk</p>
       <h1>SUBSUNK</h1>
       <p class="lede">A suspensful submarine combat simulator inspired by early arcade games. SUBSUNK is the code used by the Undersea Rescue Command when a submarine is believed to be sunk</p>
-      <p class="lede">Use the WASD keys to move your submarine and the mouse to aim and shoot torpedoes at your enemies. Can you survive the depths?</p>
+      <p class="lede">Use WASD to set speed and plot your course. Press Space to launch a torpedo along that course. Can you survive the depths?</p>
     </section>
 
     <section class="viewport-panel" aria-label="Game viewport">

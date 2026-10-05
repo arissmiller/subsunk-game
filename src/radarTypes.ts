@@ -1,16 +1,31 @@
-import type { Container, Graphics, Sprite, Text } from "pixi.js";
 import type { WorldPoint } from "./engine/navigation";
 import type { Entity } from "./engine/types";
 
-export type RadarContactKind = "enemy" | "torpedo";
-export type RadarContactState = "hidden" | "ping" | "marker";
 export type ThrottleLevel = 0 | 1 | 2;
 export type CollisionLayer = "player" | "hazard";
-export type PlayerDetonationCause = "mine" | "enemy-sub";
+export type PlayerDetonationCause = "mine" | "enemy-sub" | "own-torpedo" | "depth-charge";
+export type DetectionState = "hidden" | "ping" | "tracked";
+export type TorpedoOwner = "player" | "enemy";
+
+export interface VesselNavigation {
+  position: WorldPoint;
+  headingDeg: number;
+  speedUnitsPerSecond: number;
+  courseTurn: number;
+}
+
+export interface TorpedoBay {
+  count: number;
+  reloadStartMs: number | null;
+}
+
+export interface ContactDetection {
+  state: DetectionState;
+  revealedAtMs: number | null;
+}
 
 export interface PlayerComponents {
   kind: "player";
-  sprite?: Sprite;
   collision: {
     layer: CollisionLayer;
     radiusUnits: number;
@@ -21,22 +36,12 @@ export interface PlayerComponents {
     detonatedAtMs: number | null;
     detonationCause: PlayerDetonationCause | null;
   };
-  navigation: {
-    position: WorldPoint;
-    headingDeg: number;
-    throttleLevel: ThrottleLevel;
-    speedUnitsPerSecond: number;
-    courseTurn: number;
-  };
-  torpedoBay: {
-    count: number;
-    reloadStartMs: number | null;
-  };
+  navigation: VesselNavigation & { throttleLevel: ThrottleLevel };
+  torpedoBay: TorpedoBay;
 }
 
 export interface MineComponents {
   kind: "mine";
-  sprite?: Sprite | Graphics;
   collision: {
     layer: CollisionLayer;
     radiusUnits: number;
@@ -45,37 +50,16 @@ export interface MineComponents {
     collidedAtMs: number | null;
   };
   position: WorldPoint;
-  detection: {
-    state: "hidden" | "ping" | "tracked";
-    revealedAtMs: number | null;
-  };
+  detection: ContactDetection;
   status: {
     state: "active" | "detonating" | "destroyed";
     detonatedAtMs: number | null;
   };
 }
 
-export interface TorpedoComponents {
-  kind: "torpedo";
-  trail: {
-    start: WorldPoint;
-    target: WorldPoint;
-    firedAtMs: number;
-    durationMs: number;
-    lengthUnits: number;
-    graphic?: Graphics;
-    clickScreenPos: { x: number; y: number };
-  };
-}
-
 export interface MineLayerComponents {
   kind: "mine-layer";
-  navigation: {
-    position: WorldPoint;
-    headingDeg: number;
-    speedUnitsPerSecond: number;
-    courseTurn: number;
-  };
+  navigation: VesselNavigation;
   mineLayer: {
     lastLayedAtMs: number | null;
     nextLayIntervalMs: number;
@@ -86,79 +70,110 @@ export interface MineLayerComponents {
 
 export interface EnemySubComponents {
   kind: "enemy-sub";
-  sprite?: Sprite;
-  navigation: {
-    position: WorldPoint;
-    headingDeg: number;
-    speedUnitsPerSecond: number;
-    courseTurn: number;
-  };
-  detection: {
-    state: "hidden" | "ping" | "tracked";
-    revealedAtMs: number | null;
+  navigation: VesselNavigation;
+  detection: ContactDetection & {
     trackedUntilMs: number | null;
+    lastKnownPosition: WorldPoint | null;
+    lastKnownHeadingDeg: number | null;
+    lastKnownCourse?: VesselNavigation;
   };
   status: {
     state: "active" | "destroyed";
     destroyedAtMs: number | null;
   };
+  sonar: {
+    lastEmittedAtMs: number | null;
+    targetTrack: {
+      position: WorldPoint;
+      velocity: WorldPoint;
+      headingDeg: number;
+      observedAtMs: number;
+      speedUnitsPerSecond?: number;
+      turnRateDegPerSecond?: number;
+    } | null;
+  };
+  torpedoBay: TorpedoBay;
   ai: {
-    engagementRangeUnits: number;
-    lastFiredAtMs: number | null;
-    fireIntervalMs: number;
+    disengageBearing: number | null;
+    disengageUntilMs: number;
+    reengageUntilMs: number;
+    reengageBearing: number | null;
+    firingManeuver?: { phase: "aiming" | "returning"; returnBearing: number; untilMs: number } | null;
+    nextManeuverAtMs?: number;
+    shotsFiredInBurst: number;
+    nextFireAtMs: number;
   };
 }
 
-export interface EnemyTorpedoComponents {
-  kind: "enemy-torpedo";
-  trail: {
-    start: WorldPoint;
-    target: WorldPoint;
-    firedAtMs: number;
-    durationMs: number;
-    lengthUnits: number;
-    graphic?: Graphics;
-  };
+export interface BoatComponents extends Pick<EnemySubComponents, "navigation" | "detection" | "status" | "sonar"> {
+  kind: "boat";
+  ai: { initialTarget: WorldPoint; lastEstimatedTarget: WorldPoint; nextFireAtMs: number; nextMineAtMs: number; lastTargetPingAtMs?: number };
 }
 
-export interface RadarContactComponents {
-  kind: "radar-contact";
-  radarContact: {
-    contactKind: RadarContactKind;
-    angleDeg: number;
-    radiusPct: number;
-    state: RadarContactState;
-    revealedAtMs: number | null;
-    graphic?: Graphics;
-  };
+export interface DepthChargeComponents {
+  kind: "depth-charge";
+  sourceId: string;
+  position: WorldPoint;
+  launchedAtMs: number;
+  detonatedAtMs: number | null;
+}
+
+export interface TorpedoNavigation extends VesselNavigation {
+  plottedHeadingDeg: number | null;
+}
+
+export interface TorpedoTrail {
+  points: WorldPoint[];
+  firedAtMs: number;
+  durationMs: number;
+  lengthUnits: number;
+}
+
+export interface TorpedoComponents {
+  kind: "torpedo";
+  owner: TorpedoOwner;
+  sourceId: string;
+  clearedSource: boolean;
+  navigation: TorpedoNavigation;
+  trail: TorpedoTrail;
+}
+
+export interface SonarPulse {
+  rangeUnits?: number;
+  sourceId: string;
+  owner: TorpedoOwner;
+  origin: WorldPoint;
+  emittedAtMs: number;
+  illuminatedContactIds: Set<string>;
+}
+
+export interface SonarEcho {
+  sourceId: string;
+  contactId: string;
+  contactKind: "mine" | "enemy-sub" | "boat" | "player";
+  contactPosition: WorldPoint;
+  contactHeadingDeg: number | null;
+  contactVelocity: WorldPoint | null;
+  contactCourseTurn?: number;
+  contactSpeedUnitsPerSecond?: number;
+  contactTurnRateDegPerSecond?: number;
+  observedAtMs: number;
+  returnAtMs: number;
+}
+
+export interface SonarState {
+  coverage: Map<string, number>;
+  pulses: SonarPulse[];
+  echoes: SonarEcho[];
+  playerLastEmittedAtMs: number | null;
 }
 
 export type RadarEntity = Entity<
   | PlayerComponents
   | MineComponents
-  | RadarContactComponents
-  | TorpedoComponents
   | MineLayerComponents
   | EnemySubComponents
-  | EnemyTorpedoComponents
+  | TorpedoComponents
+  | BoatComponents
+  | DepthChargeComponents
 >;
-
-export interface RadarView {
-  contentLayer: Container;
-  overlayLayer: Container;
-  background: Graphics;
-  grid: Graphics;
-  rings: Graphics;
-  sweepTrail: Graphics;
-  sweepLineGlow: Graphics;
-  sweepLine: Graphics;
-  detectionBlips: Graphics;
-  collisionEffects: Graphics;
-  ticks: Graphics;
-  contactsLayer: Graphics;
-  coursePlot: Graphics;
-  crosshairLayer: Graphics;
-  labels: Text[];
-  frame: Graphics;
-  mask: Graphics;
-}

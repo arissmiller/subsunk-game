@@ -43,10 +43,12 @@ export async function createGameEngine(host: HTMLElement): Promise<GameEngine> {
 
   const startRadarScene = () =>
     createRadarScene(app, {
-      onGameOver: (cause: PlayerDetonationCause) => {
+      onGameOver: (cause: PlayerDetonationCause, survivedMs: number, killCount: number) => {
         void transitionTo(
           createGameOverScene(app, {
             cause,
+            survivedMs,
+            killCount,
             onRestart: () => {
               void transitionTo(startRadarScene());
             },

@@ -1,9 +1,12 @@
+import { createScoreboard } from "./radar/scoreboard";
 import { Container, Graphics, Text, TextStyle, type Application } from "pixi.js";
 import type { GameScene } from "./sceneTypes";
 import type { PlayerDetonationCause } from "./radarTypes";
 
 interface GameOverSceneOptions {
   cause: PlayerDetonationCause;
+  survivedMs: number;
+  killCount: number;
   onRestart: () => void;
 }
 
@@ -12,6 +15,8 @@ export async function createGameOverScene(
   options: GameOverSceneOptions,
 ): Promise<GameScene> {
   const root = new Container();
+  const scoreboard = createScoreboard();
+  scoreboard.update(options.survivedMs, options.killCount);
   const veil = new Graphics();
   const panel = new Graphics();
   const title = new Text({
@@ -51,12 +56,13 @@ export async function createGameOverScene(
     options.onRestart();
   });
 
-  root.addChild(veil, panel, title, subtitle, prompt);
+  root.addChild(veil, panel, title, subtitle, prompt, scoreboard.root);
   app.stage.addChild(root);
 
   let elapsedMs = 0;
 
   const layout = (viewportSize: number) => {
+    scoreboard.resize(viewportSize);
     const center = viewportSize / 2;
     const panelWidth = Math.min(viewportSize - 36, 360);
     const panelHeight = Math.min(viewportSize * 0.42, 220);
@@ -104,7 +110,11 @@ export async function createGameOverScene(
   };
 }
 
-function getGameOverMessage(cause: PlayerDetonationCause) {
+export function getGameOverMessage(cause: PlayerDetonationCause) {
+  if (cause === "depth-charge") return "Depth charge blast compromised the hull.";
+  if (cause === "own-torpedo") {
+    return "Your own torpedo compromised the hull.";
+  }
   if (cause === "enemy-sub") {
     return "Enemy torpedo impact compromised the hull.";
   }
