@@ -22,6 +22,20 @@ app.innerHTML = `
         <div class="game-surface" data-game-surface aria-hidden="true"></div>
       </div>
     </section>
+    <section class="instructions-card" aria-labelledby="instructions-title">
+      <p class="eyebrow">Captain’s briefing</p>
+      <h2 id="instructions-title">Controls &amp; navigation</h2>
+      <dl class="controls-guide">
+        <div><dt><kbd>W</kbd> / <kbd>↑</kbd></dt><dd>Increase throttle</dd></div>
+        <div><dt><kbd>S</kbd> / <kbd>↓</kbd></dt><dd>Decrease throttle</dd></div>
+        <div><dt><kbd>A</kbd> / <kbd>D</kbd> / <kbd>←</kbd> / <kbd>→</kbd></dt><dd>Adjust course</dd></div>
+        <div><dt><kbd>Space</kbd></dt><dd>Fire torpedo</dd></div>
+        <div><dt><kbd>R</kbd></dt><dd>Reload torpedoes</dd></div>
+        <div><dt>On-screen buttons</dt><dd>Click or tap to control</dd></div>
+        <div><dt><kbd>Enter</kbd> / <kbd>Space</kbd> / <kbd>R</kbd></dt><dd>Restart after game over</dd></div>
+      </dl>
+      <p class="radar-guide"><strong>Reading the sonar:</strong> Sonar pings automatically. The pale dashed line shows your plotted course; red dashed lines show enemy courses captured by your last sonar return. HDG is your compass heading, TURN is your turn setting, and TUBES shows your remaining torpedoes. Enemy markers are last-known positions, so keep watching for fresh echoes.</p>
+    </section>
   </main>
 `;
 
